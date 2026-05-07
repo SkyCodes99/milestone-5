@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The Super Movie Database</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:        #08080e; --bg2: #0f0f18; --bg3: #181825; --bg4: #1f1f2e;
+  --border:    #272736; --border-hi: #3a3a52;
+  --accent:    #e8c45a; --accent-dim: rgba(232,196,90,.12); --accent2: #e05c4a;
+  --text:      #eeeef5; --text-dim: #9090aa; --text-mute: #444458;
+  --card-bg:   #111120; --shadow: 0 6px 28px rgba(0,0,0,.65);
+  --r: 8px; --rs: 5px;
+  --fh: 'Bebas Neue', sans-serif;
+  --fb: 'DM Sans', sans-serif;
+  --fs: 'DM Serif Display', serif;
+  --ease: cubic-bezier(.4,0,.2,1); --t: .22s;
+}
+
+body { background: var(--bg); color: var(--text); font-family: var(--fb); font-weight: 300; min-height: 100vh; }
+a { color: var(--accent); }
+a:hover { color: var(--accent); }
+.hidden { display: none !important; }
+
+#site-header.navbar {
+  background: rgba(8,8,14,.95) !important;
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  min-height: 62px;
+}
+.navbar-brand {
+  font-family: var(--fh);
+  font-size: 1.3rem;
+  letter-spacing: .09em;
+  color: var(--text) !important;
+}
+.navbar-brand .brand-icon { color: var(--accent); }
+.navbar-toggler { border-color: var(--border); }
+.navbar-toggler-icon { filter: invert(1) brightness(.6); }
+.navbar-collapse { background: var(--bg2); }
+
+#primary-nav .nav-link {
+  color: var(--text-dim);
+  font-size: .75rem;
+  font-weight: 500;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  border-radius: var(--rs);
+  transition: color var(--t), background var(--t);
+}
+#primary-nav .nav-link:hover  { color: var(--text); background: var(--bg3); }
+#primary-nav .nav-link.active { color: var(--accent); background: var(--accent-dim); }
+
+#collection-nav { border-left: 1px solid var(--border); }
+#collection-nav .nav-link {
+  color: var(--text-mute);
+  font-size: .72rem;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  border-radius: var(--rs);
+  padding: .3rem .65rem;
+  transition: color var(--t), background var(--t);
+}
+#collection-nav .nav-link:hover  { color: var(--text-dim); background: var(--bg3); }
+#collection-nav .nav-link.active { color: var(--accent); background: var(--accent-dim); }
+#collection-nav.faded            { opacity: 0; pointer-events: none; }
+
+.view-toggle .btn {
+  background: var(--bg3);
+  border-color: var(--border);
+  color: var(--text-mute);
+  line-height: 1;
+  padding: .4rem .6rem;
+  transition: color var(--t), background var(--t);
+}
+.view-toggle .btn:hover  { background: var(--bg4); color: var(--text-dim); border-color: var(--border); }
+.view-toggle .btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--border); }
+.view-toggle .btn:focus  { box-shadow: none; }
+
+@media (max-width: 991.98px) {
+  .navbar-collapse { padding: .75rem 1rem 1rem; border-top: 1px solid var(--border); margin-top: .5rem; }
+  #primary-nav    { flex-direction: row; flex-wrap: wrap; gap: .25rem; }
+  #collection-nav { border-left: none; padding-left: 0 !important; border-top: 1px solid var(--border); padding-top: .5rem; margin-top: .25rem; flex-direction: row; flex-wrap: wrap; }
+  .view-toggle-wrap { padding-top: .5rem; }
+}
+
+#search-bar-section {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 0;
+}
+#search-input.form-control {
+  background: var(--bg3);
+  border-color: var(--border);
+  color: var(--text);
+  font-family: var(--fb);
+}
+#search-input.form-control::placeholder { color: var(--text-mute); }
+#search-input.form-control:focus {
+  background: var(--bg3);
+  border-color: var(--accent);
+  color: var(--text);
+  box-shadow: 0 0 0 3px rgba(232,196,90,.12);
+}
+.input-group-text.search-icon-wrap {
+  background: var(--bg3);
+  border-color: var(--border);
+  color: var(--text-mute);
+}
+#search-btn.btn {
+  background: var(--accent);
+  color: #080808;
+  font-family: var(--fh);
+  letter-spacing: .1em;
+  border: none;
+  transition: background var(--t);
+}
+#search-btn.btn:hover { background: #f0d06a; }
+
+#section-header { padding: 2rem 0 1.25rem; }
+#section-title  { font-family: var(--fh); font-size: clamp(1.8rem,4vw,3rem); letter-spacing: .07em; line-height: 1; }
+#section-subtitle { font-size: .82rem; color: var(--text-dim); }
+#result-count-badge { font-size: .75rem; color: var(--text-dim); }
+
+#loading-overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1rem;
+  background: rgba(8,8,14,.75);
+  z-index: 10;
+  border-radius: var(--r);
+  font-size: .82rem;
+  color: var(--text-dim);
+}
+.spinner {
+  width: 38px; height: 38px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#no-results { padding: 4rem 2rem; text-align: center; color: var(--text-dim); }
+.no-results-icon { font-size: 3rem; display: block; margin-bottom: 1rem; opacity: .3; }
+
+#movies-container.view-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 1rem;
+}
+#movies-container.view-grid .movie-card.card {
+  background: var(--card-bg);
+  border-color: var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--t) var(--ease), border-color var(--t), box-shadow var(--t);
+  animation: fadeUp .35s ease both;
+}
+#movies-container.view-grid .movie-card.card:hover {
+  transform: translateY(-5px) scale(1.01);
+  border-color: var(--accent);
+  box-shadow: 0 10px 32px rgba(232,196,90,.14);
+}
+#movies-container.view-grid .movie-card.card.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent), 0 10px 32px rgba(232,196,90,.18);
+}
+.card-poster             { width: 100%; aspect-ratio: 2/3; object-fit: cover; background: var(--bg3); }
+.card-poster-placeholder { width: 100%; aspect-ratio: 2/3; background: var(--bg3); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: var(--text-mute); }
+.card-body-inner .card-title-sm { font-size: .78rem; font-weight: 500; line-height: 1.3; color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: .2rem; }
+.card-body-inner .card-year   { font-size: .68rem; color: var(--text-mute); }
+.card-body-inner .card-rating { font-size: .68rem; color: var(--accent); }
+
+#movies-container.view-list { display: flex; flex-direction: column; gap: .6rem; }
+#movies-container.view-list .movie-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: .75rem;
+  cursor: pointer;
+  transition: border-color var(--t), background var(--t), box-shadow var(--t);
+  animation: fadeUp .3s ease both;
+}
+#movies-container.view-list .movie-card:hover  { border-color: var(--border-hi); background: var(--bg3); }
+#movies-container.view-list .movie-card.active { border-color: var(--accent); background: rgba(232,196,90,.05); box-shadow: 0 0 0 1px var(--accent); }
+.list-thumb             { width: 52px; height: 78px; object-fit: cover; border-radius: 4px; flex-shrink: 0; background: var(--bg3); }
+.list-thumb-placeholder { width: 52px; height: 78px; background: var(--bg3); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--text-mute); flex-shrink: 0; }
+.list-info      { flex: 1; min-width: 0; }
+.list-title     { font-size: .9rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list-meta      { display: flex; gap: .4rem; margin-top: .3rem; flex-wrap: wrap; }
+.meta-pill      { font-size: .65rem; letter-spacing: .06em; text-transform: uppercase; padding: .2rem .5rem; background: var(--bg4); border: 1px solid var(--border); border-radius: 3px; color: var(--text-dim); }
+.rating-pill    { background: var(--accent-dim); border-color: rgba(232,196,90,.3); color: var(--accent); }
+.list-overview  { font-size: .76rem; color: var(--text-mute); margin-top: .35rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.list-arrow     { font-size: 1.25rem; color: var(--text-mute); flex-shrink: 0; transition: color var(--t), transform var(--t); }
+#movies-container.view-list .movie-card:hover .list-arrow { color: var(--accent); transform: translateX(3px); }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+#pagination { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+#page-info  { font-size: .75rem; color: var(--text-dim); }
+.page-btn {
+  width: 34px; height: 34px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--rs);
+  color: var(--text-dim);
+  font-size: .8rem; font-weight: 500;
+  cursor: pointer;
+  transition: background var(--t), color var(--t), border-color var(--t);
+}
+.page-btn:hover:not(:disabled) { background: var(--bg4); color: var(--text); border-color: var(--border-hi); }
+.page-btn.current  { background: var(--accent); border-color: var(--accent); color: #080808; font-weight: 600; }
+.page-btn.arrow    { font-size: 1.1rem; }
+.page-btn:disabled { opacity: .25; cursor: not-allowed; }
+
+#detail-panel.card {
+  background: var(--bg2);
+  border-color: var(--border);
+  border-radius: var(--r);
+  position: sticky;
+  top: 78px;
+  align-self: start;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  animation: slideIn .28s var(--ease) both;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: translateX(0); } }
+#close-detail {
+  position: absolute; top: .7rem; right: .7rem;
+  background: rgba(0,0,0,.55);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  width: 28px; height: 28px;
+  border-radius: 50%; font-size: .7rem;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 5; cursor: pointer;
+  transition: color var(--t), border-color var(--t), background var(--t);
+}
+#close-detail:hover { color: var(--text); border-color: var(--text); background: rgba(0,0,0,.8); }
+.detail-backdrop             { width: 100%; height: 190px; object-fit: cover; object-position: center 30%; display: block; filter: brightness(.65); }
+.detail-backdrop-placeholder { width: 100%; height: 100px; background: linear-gradient(135deg, var(--bg3), var(--bg)); }
+.detail-body       { padding: 1.4rem; }
+.detail-poster-row { display: flex; gap: 1rem; margin-bottom: 1.1rem; margin-top: -56px; position: relative; z-index: 2; }
+.detail-poster             { width: 88px; height: 132px; object-fit: cover; border-radius: 5px; border: 2px solid var(--border); box-shadow: var(--shadow); flex-shrink: 0; }
+.detail-poster-placeholder { width: 88px; height: 132px; background: var(--bg3); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--text-mute); flex-shrink: 0; }
+.detail-title-block  { align-self: flex-end; padding-bottom: .2rem; min-width: 0; }
+.detail-title        { font-family: var(--fs); font-size: 1.15rem; line-height: 1.25; color: var(--text); }
+.detail-tagline      { font-size: .73rem; font-style: italic; color: var(--text-dim); margin-top: .25rem; }
+.detail-meta         { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+.meta-badge          { font-size: .67rem; letter-spacing: .07em; text-transform: uppercase; padding: .22rem .55rem; border-radius: 3px; background: var(--bg3); border: 1px solid var(--border); color: var(--text-dim); }
+.meta-badge.rating   { background: var(--accent-dim); border-color: rgba(232,196,90,.35); color: var(--accent); }
+.meta-badge.genre    { background: rgba(224,92,74,.1); border-color: rgba(224,92,74,.3); color: #e07868; }
+.detail-overview-label { font-size: .67rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-mute); margin-bottom: .45rem; }
+.detail-overview       { font-size: .83rem; line-height: 1.7; color: var(--text-dim); }
+
+.detail-stats-table { margin-top: .75rem; margin-bottom: 0; font-size: .8rem; }
+.detail-stats-table td { padding: .4rem .5rem; border-top: 1px solid var(--border); color: var(--text-dim); background: transparent; }
+.detail-stats-table td:first-child { font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-mute); width: 38%; }
+
+#site-footer { border-top: 1px solid var(--border); font-size: .72rem; color: var(--text-mute); }
+
+::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 3px; }
+
+#results-panel { position: relative; min-height: 280px; }
+
+@media (max-width: 991.98px) {
+  #detail-col { display: none; }
+  #detail-col.detail-visible { display: block !important; }
+  #detail-panel.card {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 1050;
+    max-height: 78vh;
+    border-radius: var(--r) var(--r) 0 0;
+    top: auto;
+  }
+}
+@media (max-width: 575.98px) {
+  #movies-container.view-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: .75rem; }
+  #section-title { font-size: 1.8rem; }
+}
+</style>
+</head>
+<body>
+
+<script id="tmpl-grid-card" type="x-tmpl-mustache">
+[[#posterUrl]]<img class="card-poster" src="[[posterUrl]]" alt="[[titleEsc]]" loading="lazy"/>[[/posterUrl]][[^posterUrl]]<div class="card-poster-placeholder">🎬</div>[[/posterUrl]]<div class="card-body p-2 card-body-inner"><p class="card-title-sm mb-1">[[title]]</p><p class="card-year mb-0">[[year]]</p>[[#rating]]<p class="card-rating mb-0">&#9733; [[rating]]</p>[[/rating]]</div>
+</script>
+
+<script id="tmpl-list-row" type="x-tmpl-mustache">
+[[#posterUrl]]<img class="list-thumb" src="[[posterUrl]]" alt="[[titleEsc]]" loading="lazy"/>[[/posterUrl]][[^posterUrl]]<div class="list-thumb-placeholder">🎬</div>[[/posterUrl]]<div class="list-info"><p class="list-title mb-0">[[title]]</p><div class="list-meta">[[#year]]<span class="meta-pill">[[year]]</span>[[/year]][[#rating]]<span class="meta-pill rating-pill">&#9733; [[rating]]</span>[[/rating]][[#lang]]<span class="meta-pill">[[lang]]</span>[[/lang]]</div><p class="list-overview mb-0">[[shortOverview]]</p></div><div class="list-arrow">&#8250;</div>
+</script>
+
+<script id="tmpl-detail" type="x-tmpl-mustache">
+[[#backdropUrl]]<img class="detail-backdrop" src="[[backdropUrl]]" alt="[[titleEsc]]"/>[[/backdropUrl]][[^backdropUrl]]<div class="detail-backdrop-placeholder"></div>[[/backdropUrl]]<div class="detail-body"><div class="detail-poster-row">[[#posterUrl]]<img class="detail-poster" src="[[posterUrl]]" alt="[[titleEsc]]"/>[[/posterUrl]][[^posterUrl]]<div class="detail-poster-placeholder">🎬</div>[[/posterUrl]]<div class="detail-title-block"><h2 class="detail-title">[[title]]</h2>[[#tagline]]<p class="detail-tagline">[[tagline]]</p>[[/tagline]]</div></div><div class="detail-meta">[[#year]]<span class="meta-badge">[[year]]</span>[[/year]][[#rating]]<span class="meta-badge rating">&#9733; [[rating]]</span>[[/rating]][[#runtime]]<span class="meta-badge">[[runtime]]</span>[[/runtime]][[#language]]<span class="meta-badge">[[language]]</span>[[/language]][[#genres]]<span class="meta-badge genre">[[name]]</span>[[/genres]]</div>[[#overview]]<p class="detail-overview-label">Overview</p><p class="detail-overview">[[overview]]</p>[[/overview]]<table class="table detail-stats-table"><tbody><tr><td>Director</td><td>[[director]]</td></tr><tr><td>Cast</td><td>[[cast]]</td></tr><tr><td>Status</td><td>[[status]]</td></tr><tr><td>Language</td><td>[[language]]</td></tr><tr><td>Budget</td><td>[[budget]]</td></tr><tr><td>Box Office</td><td>[[revenue]]</td></tr></tbody></table></div>
+</script>
+
+<nav id="site-header" class="navbar navbar-expand-lg sticky-top px-3 px-lg-4">
+  <div class="container-fluid p-0">
+    <a class="navbar-brand d-flex align-items-center gap-2" id="logo-btn" href="#">
+      <span class="brand-icon"><i class="bi bi-collection-play-fill"></i></span>
+      The Super Movie Database
+    </a>
+    <button class="navbar-toggler ms-auto" type="button"
+            data-bs-toggle="collapse" data-bs-target="#navCollapse"
+            aria-controls="navCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navCollapse">
+      <ul class="nav nav-pills" id="primary-nav">
+        <li class="nav-item">
+          <button class="nav-link active" data-view="collection">Collections</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-view="search">Search</button>
+        </li>
+      </ul>
+      <ul class="nav nav-pills ms-3 ps-3" id="collection-nav">
+        <li class="nav-item"><button class="nav-link active" data-category="popular">Popular</button></li>
+        <li class="nav-item"><button class="nav-link" data-category="top_rated">Top Rated</button></li>
+        <li class="nav-item"><button class="nav-link" data-category="upcoming">Upcoming</button></li>
+      </ul>
+      <div class="ms-lg-auto mt-2 mt-lg-0 view-toggle-wrap d-flex align-items-center">
+        <div class="btn-group view-toggle" id="view-toggle" role="group" aria-label="View layout">
+          <button class="btn active" data-layout="grid" title="Grid view">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
+              <rect x="0" y="0" width="7" height="7" rx="1"/><rect x="9" y="0" width="7" height="7" rx="1"/>
+              <rect x="0" y="9" width="7" height="7" rx="1"/><rect x="9" y="9" width="7" height="7" rx="1"/>
+            </svg>
+          </button>
+          <button class="btn" data-layout="list" title="List view">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
+              <rect x="0" y="1" width="16" height="3" rx="1"/><rect x="0" y="6" width="16" height="3" rx="1"/>
+              <rect x="0" y="11" width="16" height="3" rx="1"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<section id="search-bar-section" class="hidden py-3">
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-8 col-lg-6">
+        <div class="input-group">
+          <span class="input-group-text search-icon-wrap">
+            <i class="bi bi-search"></i>
+          </span>
+          <input type="text" id="search-input"
+                 class="form-control"
+                 placeholder="Search movies, directors, genres…"
+                 autocomplete="off"/>
+          <button id="search-btn" class="btn">SEARCH</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main id="app">
+  <div class="container-fluid px-3 px-lg-4">
+
+    <div id="section-header" class="row align-items-center">
+      <div class="col">
+        <h1 id="section-title" class="mb-1">Popular Movies</h1>
+        <p id="section-subtitle" class="mb-0">Trending on the big screen right now</p>
+      </div>
+      <div class="col-auto">
+        <span id="result-count-badge" class="badge bg-secondary hidden"></span>
+      </div>
+    </div>
+
+    <div class="row g-3 pb-5" id="content-layout">
+
+      <div class="col-12 col-lg-8 col-xl-9" id="results-col">
+        <div id="results-panel">
+          <div id="loading-overlay" class="hidden">
+            <div class="spinner"></div>
+            <p>Loading…</p>
+          </div>
+          <div id="no-results" class="hidden"></div>
+          <div id="movies-container" class="view-grid"></div>
+          <div id="pagination" class="hidden">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <span id="page-info"></span>
+              <div id="page-btns" class="d-flex gap-1 flex-wrap"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-4 col-xl-3 hidden" id="detail-col">
+        <div id="detail-panel" class="card">
+          <button id="close-detail" title="Close">&#10005;</button>
+          <div id="detail-content"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer id="site-footer" class="py-3 text-center">
+  <p class="mb-0">Powered by <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB API</a>
+     &middot; Milestone 5 &mdash; Bootstrap Enhanced</p>
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mustache@4.2.0/mustache.min.js"></script>
+
+<script>
+(function () {
+'use strict';
+
+var API_KEY     = 'ec49f2d5bd16d2cf6f6a55185e08503c';
+var BASE        = 'https://api.themoviedb.org/3';
+var IMG         = 'https://image.tmdb.org/t/p/';
+var POSTER_SZ   = 'w342';
+var BACKDROP_SZ = 'w780';
+var PER_PAGE    = 10;
+
+var Tmpl = {
+  render: function (str, data) {
+    str = str.replace(/\[\[#(\w+)\]\]([\s\S]*?)\[\[\/\1\]\]/g, function (_, key, inner) {
+      var v = data[key];
+      if (!v) return '';
+      if (Array.isArray(v)) return v.map(function (item) { return Tmpl.render(inner, item); }).join('');
+      return Tmpl.render(inner, data);
+    });
+    str = str.replace(/\[\[\^(\w+)\]\]([\s\S]*?)\[\[\/\1\]\]/g, function (_, key, inner) {
+      var v = data[key];
+      if (v && !(Array.isArray(v) && v.length === 0)) return '';
+      return inner;
+    });
+    str = str.replace(/\[\[(\w+)\]\]/g, function (_, key) {
+      return data[key] != null ? String(data[key]) : '';
+    });
+    return str;
+  }
+};
+
+var T = {};
+function loadTemplates() {
+  $('script[type="x-tmpl-mustache"]').each(function () {
+    T[this.id] = this.innerHTML;
+  });
+}
+
+function getJSON(url, params, success, error) {
+  $.ajax({
+    url: url, data: params, dataType: 'json',
+    success: success,
+    error: function (xhr) { if (error) error({ status: xhr.status }); }
+  });
+}
+
+function getAll(requests, done, fail) {
+  var results = new Array(requests.length);
+  var left = requests.length;
+  var dead = false;
+  requests.forEach(function (r, i) {
+    getJSON(r.url, r.params, function (data) {
+      if (dead) return;
+      results[i] = data;
+      if (--left === 0) done(results);
+    }, function (err) {
+      if (!dead) { dead = true; fail(err); }
+    });
+  });
+}
+
+var S = {
+  view: 'collection', category: 'popular',
+  query: '', movies: [], page: 1, totalPgs: 0,
+  activeId: null, layout: 'grid'
+};
+
+var META = {
+  popular:   { title: 'Popular Movies',   sub: 'Trending on the big screen right now', ep: 'popular'   },
+  top_rated: { title: 'Top Rated Movies', sub: 'The highest-rated films of all time',   ep: 'top_rated' },
+  upcoming:  { title: 'Upcoming Movies',  sub: 'Coming soon to a theater near you',     ep: 'upcoming'  },
+  search:    { title: 'Search Results',   sub: 'Showing results for your query',         ep: null        }
+};
+
+function init() {
+  loadTemplates();
+  bindEvents();
+  loadCollection('popular');
+}
+
+function bindEvents() {
+  $('#primary-nav').on('click', '.nav-link', function () {
+    var view = $(this).data('view');
+    if (view === S.view) return;
+    $('#primary-nav .nav-link').removeClass('active');
+    $(this).addClass('active');
+    S.view = view;
+    closeDetail();
+    if (view === 'search') {
+      $('#search-bar-section').removeClass('hidden');
+      $('#collection-nav').addClass('faded');
+      setSectionMeta('search');
+      clearGrid();
+    } else {
+      $('#search-bar-section').addClass('hidden');
+      $('#collection-nav').removeClass('faded');
+      loadCollection(S.category);
+    }
+    var bsCollapse = bootstrap.Collapse.getInstance($('#navCollapse')[0]);
+    if (bsCollapse) bsCollapse.hide();
+  });
+
+  $('#logo-btn').on('click', function (e) {
+    e.preventDefault();
+    $('#primary-nav .nav-link').removeClass('active');
+    $('[data-view="collection"]').addClass('active');
+    S.view = 'collection';
+    $('#search-bar-section').addClass('hidden');
+    $('#collection-nav').removeClass('faded');
+    closeDetail();
+    loadCollection(S.category);
+  });
+
+  $('#collection-nav').on('click', '.nav-link', function () {
+    var cat = $(this).data('category');
+    if (cat === S.category && S.view === 'collection') return;
+    $('#collection-nav .nav-link').removeClass('active');
+    $(this).addClass('active');
+    S.category = cat;
+    closeDetail();
+    loadCollection(cat);
+    var bsCollapse = bootstrap.Collapse.getInstance($('#navCollapse')[0]);
+    if (bsCollapse) bsCollapse.hide();
+  });
+
+  $('#view-toggle').on('click', '.btn', function () {
+    var layout = $(this).data('layout');
+    if (layout === S.layout) return;
+    $('#view-toggle .btn').removeClass('active');
+    $(this).addClass('active');
+    S.layout = layout;
+    $('#movies-container').attr('class', layout === 'grid' ? 'view-grid' : 'view-list');
+    renderGrid();
+  });
+
+  $('#search-btn').on('click', doSearch);
+  $('#search-input').on('keypress', function (e) { if (e.key === 'Enter') doSearch(); });
+
+  $('#movies-container').on('click', '.movie-card', function () {
+    var id = parseInt($(this).data('id'), 10);
+    if (id === S.activeId) { closeDetail(); return; }
+    S.activeId = id;
+    $('.movie-card').removeClass('active');
+    $(this).addClass('active');
+    fetchDetail(id);
+  });
+
+  $('#pagination').on('click', '.page-btn', function () {
+    if ($(this).prop('disabled')) return;
+    var pg = parseInt($(this).data('page'), 10);
+    if (!pg || pg === S.page) return;
+    S.page = pg;
+    renderGrid();
+  });
+
+  $('#close-detail').on('click', closeDetail);
+}
+
+function doSearch() {
+  var q = $('#search-input').val().trim();
+  if (!q) return;
+  S.query = q; S.page = 1; S.movies = []; S.activeId = null;
+  closeDetail();
+  setSectionMeta('search', 'Showing results for "' + escHtml(q) + '"');
+  var reqs = [1, 2, 3].map(function (p) {
+    return { url: BASE + '/search/movie', params: { api_key: API_KEY, query: q, page: p } };
+  });
+  showLoading(true);
+  getAll(reqs, function (res) {
+    var all = [];
+    res.forEach(function (r) { all = all.concat(r.results || []); });
+    S.movies = all.slice(0, 50);
+    S.totalPgs = Math.ceil(S.movies.length / PER_PAGE);
+    showLoading(false); renderGrid();
+  }, function (err) { showLoading(false); showError(err); });
+}
+
+function loadCollection(endpoint) {
+  S.view = 'collection'; S.category = endpoint; S.page = 1; S.movies = [];
+  setSectionMeta(endpoint);
+  showLoading(true);
+  var ep = (META[endpoint] || META.popular).ep;
+  var reqs = [1, 2, 3].map(function (p) {
+    return { url: BASE + '/movie/' + ep, params: { api_key: API_KEY, page: p } };
+  });
+  getAll(reqs, function (res) {
+    var all = [];
+    res.forEach(function (r) { all = all.concat(r.results || []); });
+    S.movies = all.slice(0, 50);
+    S.totalPgs = Math.ceil(S.movies.length / PER_PAGE);
+    showLoading(false); renderGrid();
+  }, function (err) { showLoading(false); showError(err); });
+}
+
+function renderGrid() {
+  $('#no-results').addClass('hidden');
+  var start = (S.page - 1) * PER_PAGE;
+  var items = S.movies.slice(start, start + PER_PAGE);
+  var $mc = $('#movies-container').empty();
+
+  if (!items.length) {
+    $('#no-results').html(
+      '<span class="no-results-icon">&#9678;</span><p>' +
+      (S.view === 'search' ? 'No movies found. Try a different term.' : 'No movies available.') +
+      '</p>'
+    ).removeClass('hidden');
+    $('#pagination').addClass('hidden');
+    return;
+  }
+
+  var isGrid = S.layout === 'grid';
+  var tid = isGrid ? 'tmpl-grid-card' : 'tmpl-list-row';
+  var frag = document.createDocumentFragment();
+
+  items.forEach(function (m, i) {
+    var wrap = document.createElement('div');
+    wrap.className = isGrid ? 'movie-card card' : 'movie-card';
+    wrap.dataset.id = m.id;
+    wrap.style.animationDelay = (i * 0.028).toFixed(3) + 's';
+    if (m.id === S.activeId) wrap.classList.add('active');
+    wrap.innerHTML = Tmpl.render(T[tid], buildView(m, i));
+    frag.appendChild(wrap);
+  });
+  $mc[0].appendChild(frag);
+
+  renderPagination();
+  $('#result-count-badge').text(S.movies.length + ' movies').removeClass('hidden');
+  var top = $('#section-header')[0].getBoundingClientRect().top + window.scrollY - 74;
+  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+}
+
+function buildView(m, i) {
+  return {
+    id: m.id,
+    title: escHtml(m.title || ''),
+    titleEsc: escAttr(m.title || ''),
+    year: m.release_date ? m.release_date.slice(0, 4) : '',
+    rating: m.vote_average ? parseFloat(m.vote_average).toFixed(1) : '',
+    lang: m.original_language ? m.original_language.toUpperCase() : '',
+    posterUrl: m.poster_path ? IMG + POSTER_SZ + m.poster_path : '',
+    shortOverview: (m.overview || '').length > 120
+      ? (m.overview || '').slice(0, 117) + '…'
+      : (m.overview || ''),
+    delay: (i * 0.028).toFixed(3)
+  };
+}
+
+function renderPagination() {
+  var cur = S.page, tot = S.totalPgs;
+  if (tot <= 1) { $('#pagination').addClass('hidden'); return; }
+  var btns = '';
+  btns += '<button class="page-btn arrow" data-page="' + (cur - 1) + '"' + (cur === 1 ? ' disabled' : '') + '>&#8249;</button>';
+  for (var p = 1; p <= tot; p++) {
+    btns += '<button class="page-btn' + (p === cur ? ' current' : '') + '" data-page="' + p + '">' + p + '</button>';
+  }
+  btns += '<button class="page-btn arrow" data-page="' + (cur + 1) + '"' + (cur === tot ? ' disabled' : '') + '>&#8250;</button>';
+  $('#page-info').text('Page ' + cur + ' of ' + tot + ' · ' + S.movies.length + ' movies');
+  $('#page-btns').html(btns);
+  $('#pagination').removeClass('hidden');
+}
+
+function fetchDetail(id) {
+  $('#detail-content').html(
+    '<div class="p-5 text-center" style="color:var(--text-dim)">' +
+    '<div class="spinner mx-auto mb-3"></div><p>Loading…</p></div>'
+  );
+  openDetailPanel();
+  getJSON(BASE + '/movie/' + id, { api_key: API_KEY, append_to_response: 'credits' },
+    renderDetail,
+    function (err) { closeDetail(); showError(err); }
+  );
+}
+
+function renderDetail(m) {
+  var year     = m.release_date  ? m.release_date.slice(0, 4)            : '&mdash;';
+  var rating   = m.vote_average  ? parseFloat(m.vote_average).toFixed(1) : '';
+  var runtime  = m.runtime       ? m.runtime + ' min'                     : '';
+  var poster   = m.poster_path   ? IMG + POSTER_SZ + m.poster_path        : '';
+  var backdrop = m.backdrop_path ? IMG + BACKDROP_SZ + m.backdrop_path    : '';
+  var director = '&mdash;', cast = '&mdash;';
+  if (m.credits && m.credits.crew) {
+    var d = m.credits.crew.filter(function (p) { return p.job === 'Director'; })[0];
+    if (d) director = escHtml(d.name);
+  }
+  if (m.credits && m.credits.cast && m.credits.cast.length) {
+    cast = m.credits.cast.slice(0, 4).map(function (p) { return escHtml(p.name); }).join(', ');
+  }
+  var lang    = (m.spoken_languages && m.spoken_languages[0])
+    ? m.spoken_languages[0].english_name : (m.original_language || '&mdash;');
+  var budget  = m.budget  > 0 ? '$' + m.budget.toLocaleString()  : '&mdash;';
+  var revenue = m.revenue > 0 ? '$' + m.revenue.toLocaleString() : '&mdash;';
+
+  $('#detail-content').html(Tmpl.render(T['tmpl-detail'], {
+    title: escHtml(m.title || ''), titleEsc: escAttr(m.title || ''),
+    tagline: m.tagline ? escHtml(m.tagline) : '',
+    year: year, rating: rating, runtime: runtime, language: lang,
+    overview: m.overview ? escHtml(m.overview) : '',
+    posterUrl: poster, backdropUrl: backdrop,
+    genres: (m.genres || []).map(function (g) { return { name: escHtml(g.name) }; }),
+    director: director, cast: cast,
+    status: m.status ? escHtml(m.status) : '&mdash;',
+    budget: budget, revenue: revenue
+  }));
+  openDetailPanel();
+}
+
+function openDetailPanel() {
+  $('#detail-panel').removeClass('hidden');
+  $('#detail-col').removeClass('hidden').addClass('detail-visible');
+}
+
+function closeDetail() {
+  S.activeId = null;
+  $('.movie-card').removeClass('active');
+  $('#detail-panel').addClass('hidden');
+  $('#detail-col').addClass('hidden').removeClass('detail-visible');
+}
+
+function setSectionMeta(key, customSub) {
+  var m = META[key] || META.popular;
+  $('#section-title').text(m.title);
+  $('#section-subtitle').text(customSub || m.sub);
+}
+
+function showLoading(on) {
+  if (on) {
+    $('#loading-overlay').removeClass('hidden');
+    $('#movies-container').empty();
+    $('#pagination, #result-count-badge').addClass('hidden');
+  } else {
+    $('#loading-overlay').addClass('hidden');
+  }
+}
+
+function clearGrid() {
+  $('#movies-container').empty();
+  $('#pagination, #no-results, #result-count-badge').addClass('hidden');
+}
+
+function showError(err) {
+  var msgs = { 401: 'Invalid API key.', 404: 'Not found.', 429: 'Too many requests.' };
+  $('#movies-container').html(
+    '<div class="p-3 text-danger-emphasis">&#9888; ' +
+    (msgs[err.status] || 'Something went wrong.') + '</div>'
+  );
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function escAttr(s) { return String(s).replace(/"/g, '&quot;'); }
+
+$(function () { init(); });
+
+})();
+</script>
+</body>
+</html>
